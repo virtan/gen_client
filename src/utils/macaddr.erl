@@ -74,15 +74,14 @@ get_interface_info(Cmd) ->
 %%% @doc Exported for testability.   Internal use only.
 -spec mac_matcher(Line::string(), Acc::[string()]) -> [string()].
 mac_matcher(Line, Acc) ->
-  MACRegex = " (?<FOO>([0-9A-F][0-9A-F][:\\-]){5}[0-9A-F][0-9A-F])([^:\\-0-9A-F]|$)",
-  case re:run(Line, MACRegex, [caseless, {capture,['FOO']}]) of
-    {match, [{Start, Length}]} ->
-      MACAddress = string:strip(lists:sublist(Line, Start, Length+1)),
-      {ok, StdMACAddress, _} =  regexp:gsub(MACAddress, "-", ":"),
-      [StdMACAddress|Acc];
-    _ ->
-      Acc
-  end.
+    MACRegex = " (?<FOO>([0-9A-Fa-f][0-9A-Fa-f][:\\-]){5}[0-9A-Fa-f][0-9A-Fa-f])([^:\\-0-9A-F]|$)",
+    case re:run(Line, MACRegex, [caseless, {capture,['FOO'], list}]) of
+        {match, [MACAddress]} ->
+            StdMACAddress = re:replace(MACAddress, "-", ":", [{return, list}]),
+            [StdMACAddress|Acc];
+        _ ->
+            Acc
+    end.
 
 %%% @doc Retrieve list of MAC addresses for machine
 -spec(address_list() -> [string()]).
@@ -99,8 +98,8 @@ extract_mac_addresses(CmdOutput) ->
                                                          Elem /= "00-00-00-00-00-00" andalso
                                                          length(Elem) =< 17 ) end, Candidates0)),
   case length(Candidates) of
-    0 -> throw({error, {no_mac_address_candidate, "No MAC Address"}});
-    _ -> ok
+      0 -> throw({error, {no_mac_address_candidate, "No MAC Address"}});
+      _ -> ok
   end,
   lists:usort(Candidates).  % remove duplicates
 
@@ -113,7 +112,7 @@ extract_interface_info(Interface) ->
     execute_commands(Cmds).
 
 execute_commands(Cmds) ->
-    {ok, Results} = regexp:split(string:join([get_interface_info(Cmd) || Cmd <- Cmds], " "), "[\r\n]"),
+    Results = re:split(string:join([get_interface_info(Cmd) || Cmd <- Cmds], " "), "[\r\n]"),
     [R || R <- Results,
           R /= []].
 

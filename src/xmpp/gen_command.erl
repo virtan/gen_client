@@ -12,9 +12,9 @@
 % gen_command behaviour
 % Return a list of required functions and their arity
 behaviour_info(callbacks) ->
-		[
-		 {new_session_process, 2}, %% Arguments and requester {Acc, Domain, Resource}
-		 {execute, 4}, %% Session, arguments, data form, requester 
-		 {cancel, 1} 	 %% Session
-		];
+    [
+     {new_session_process, 2}, %% Arguments and requester {Acc, Domain, Resource}
+     {execute, 4}, %% Session, arguments, data form, requester
+     {cancel, 1} 	 %% Session
+    ];
 behaviour_info(_Other) -> undefined.
