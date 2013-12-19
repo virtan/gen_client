@@ -198,7 +198,7 @@ stop(Client) ->
 
 init(Options) ->
   process_flag(trap_exit, true),
-  io:format("Starting gen_client with options:~n~p~n", [Options]),
+  %io:format("Starting gen_client with options:~n~p~n", [Options]),
 	 Session = create_session(Options),
   {ok, #client_state{
                      options = Options,
@@ -247,7 +247,7 @@ handle_call({add_plugin, Plugin, Args, Priority}, _From, #client_state{handlers 
   {reply, HandlerKey, State#client_state{handlers = NewHandlers}};
 
 handle_call({remove_handler, HandlerKey}, _From, #client_state{handlers = Handlers} = State) ->
-  io:format("Removing handler ~p~n", [HandlerKey]),
+  %io:format("Removing handler ~p~n", [HandlerKey]),
   NewHandlers = orddict:erase(HandlerKey, Handlers),
   {reply, ok, State#client_state{handlers = NewHandlers}};
 
@@ -269,7 +269,7 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast({send_packet, Packet}, #client_state{session = Session} = State) ->
-  io:format("Outgoing:~p~n", [exmpp_xml:document_to_list(Packet)]),
+  %io:format("Outgoing:~p~n", [exmpp_xml:document_to_list(Packet)]),
   spawn(fun() -> exmpp_session:send_packet(Session, Packet) end),
   {noreply, State};	
 
@@ -313,7 +313,7 @@ handle_info(timeout, State) ->
 
 %% Handle EXIT from Session
 handle_info({'DOWN', _MonitorRef, process, Process, Info}, #client_state{session = Session, options = Options} = State) ->
-  io:format("Process ~p dies:~p~n", [Process, Info]),
+  %io:format("Process ~p dies:~p~n", [Process, Info]),
   case Session == undefined orelse Process == Session of
     true ->
   case lists:keysearch(reconnect, 1, Options) of
@@ -329,12 +329,12 @@ handle_info({'DOWN', _MonitorRef, process, Process, Info}, #client_state{session
 
 
 handle_info({'EXIT', Process, Reason}, State) ->
-  io:format("Process ~p ended with ~p.~n", [Process, Reason]),
+  %io:format("Process ~p ended with ~p.~n", [Process, Reason]),
   {noreply, State};
 
 
 handle_info(reconnect, #client_state{session = Session, options = Options} = State) ->
-  io:format("Reconnecting...~n"),
+  %io:format("Reconnecting...~n"),
   catch(exmpp_session:stop(Session)),
   NewSession = create_session(Options),
   case lists:keysearch(module, 1, Options) of
@@ -386,7 +386,7 @@ handle_info(Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 terminate(Reason, #client_state{session = Session, options = Options, handlers = Handlers} = _State) ->
-  io:format("Terminating ~p with reason ~p~n", [proplists:get_value(jid, Options), Reason]),
+  %io:format("Terminating ~p with reason ~p~n", [proplists:get_value(jid, Options), Reason]),
   exmpp_session:stop(Session),
   orddict:filter(fun(_Key, {_Handler, Terminator}) -> erlang:apply(Terminator, []), false end, Handlers),	
   ok.
@@ -455,17 +455,17 @@ create_session(SessionParams) ->
   
   auth(Session, JID, AuthParams),
   %% Connect :
-  io:format("Connecting with ~p~n", [ConnectionParams]),
+  %io:format("Connecting with ~p~n", [ConnectionParams]),
   
   exmpp_session:set_controlling_process(Session, self()), 
   try 
 		StreamId = connect(Session, JID, ConnectionParams),
-  io:format("stream id:~p~n", [StreamId]),
+  %io:format("stream id:~p~n", [StreamId]),
   startup_script(SessionParams), 
   					Session
 		catch
 				_Error:Reason ->
-						io:format("Failure to connect:~p~n", [Reason]),
+						%io:format("Failure to connect:~p~n", [Reason]),
 						exmpp_session:stop(Session),
 						undefined
 	end.
@@ -518,7 +518,7 @@ startup_script(Options) ->
 auth(Session, JID, AuthParams) ->
   Password = proplists:get_value(password, AuthParams, undefined),
   Method = get_auth_method(AuthParams),
-  io:format("Authenticating ~p with ~p~n", [JID, Password]),
+  %io:format("Authenticating ~p with ~p~n", [JID, Password]),
   exmpp_session:auth(Session, JID, Password, Method).
 
 %% Connections
@@ -560,7 +560,8 @@ set_debug(Client, TrueFalse) ->
   gen_server:cast(Client, {set_debug, TrueFalse}).
 
 log_packet(#received_packet{raw_packet = Packet} = _Received) -> 
-  io:format("Incoming:~p~n", [exmpp_xml:document_to_list(Packet)]).
+  %io:format("Incoming:~p~n", [exmpp_xml:document_to_list(Packet)]),
+  ok.
 
 generateHandlerId(Handler) ->
   exmpp_utils:random_id("handler."  ++  lists:flatten(io_lib:format("~p::~p", [Handler, self()]))).

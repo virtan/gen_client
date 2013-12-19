@@ -154,7 +154,7 @@ create_timer() ->
     spawn(fun() -> resettable_timer_func(infinity, fun() -> throw({error, sleeping_timer_active}) end) end).
 
 start_timer(Timer, Timeout, Fun) ->
-    io:format("Start timer at:~p with timeout = ~p~n", [calendar:local_time(), Timeout] ),
+    %io:format("Start timer at:~p with timeout = ~p~n", [calendar:local_time(), Timeout] ),
     reset_timer(Timer, Timeout, Fun).
 
 resettable_timer_func(Timeout, Fun) ->
