@@ -368,6 +368,10 @@ handle_info(Received,
              end end),
   {noreply, State};
 
+handle_info({_, normal}, State) ->
+    lager:debug("Can't connect, retrying"),
+    {noreply, State};
+
 handle_info(Msg, State) ->
   io:format("Unexpected message:~p~n", [Msg]),
 		{noreply, State}.
