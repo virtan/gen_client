@@ -368,8 +368,9 @@ handle_info(Received,
              end end),
   {noreply, State};
 
-handle_info({_, normal}, State) ->
-    lager:debug("Can't connect, retrying"),
+handle_info({_, normal}, #client_state{options = Options} = State) ->
+    RobertName = proplists:get_value(robert_name, Options, "robert name not set"),
+    lager:debug("Transport ~p: can't connect, retrying", [RobertName]),
     {noreply, State};
 
 handle_info(Msg, State) ->
